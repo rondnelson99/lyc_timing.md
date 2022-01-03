@@ -25,7 +25,7 @@ The final problem is perhaps the biggest one. It’s common practice in Gameboy 
 
 ## Timing, With Diagrams and Stuff
 First, let’s look at the timing of the rendering itself, courtesy of the Pan Docs:
-**![](https://lh6.googleusercontent.com/pXdqWHiQrrlqOrbwJuu5KVQ4SQeVOC2OjNBg3JatLSCIaSBGJw6Ga4KX4Ku-lukBhUKutn50cqDnNhoR1WOxAz4Tb9PM2QcIDqB2a5yvuHQiAlsarcSk7hl8dnJNxh89VGWobhk1)**
+**![](pxdqwhiqrrlqorbwjuu5kvq4sqevoc2ojnbg3jatlsciasbgjw6ga4kx4ku-lukbhukutn50cqdnnhor1woxaz4tb9pm2qcidqb2a5yvuhqialsarcsk7hl8dnjnxh89vgwobhk1.png)**
 Note that:
  - Each full scanline takes exactly 456 dots (114 cycles)
  - Mode 2 also takes a constant amount of time (20 cycles)
@@ -60,7 +60,7 @@ Note that this may not be an especially well-written LYC routine, but the actual
 
 Here’s how the timing of all this might look:
 
-![](https://lh4.googleusercontent.com/4GbMLPp4pZAXvQqL5wn9jihPP4s3cLseKw1GDcLvY1hEoHAx8t2fFE9e5dLFVosLvjiXfZmZzf3N5twX5ar0xF8HEXdt-rffi0gnNRTfLemGjafSi-t6ceLr0BZdTRz7j7nJ4O47)
+![](4gbmlpp4pzaxvqql5wn9jihpp4s3clsekw1gdclvy1heohax8t2ffe9e5dlfvoslvjixfzmzzf3n5twx5ar0xf8hexdt-rffi0gnnrtflemgjafsi-t6celr0bzdtrz7j7nj4o47.png)
 
 The 5 yellow cycles mark the time it takes for the system to prepare the interrupt. During this time, it has to push the program counter to the stack, disable interrupts, etc. Then, the actual interrupt routine can start.
 
@@ -72,17 +72,17 @@ Right now, there are a few problems here. The first is that the actual register 
 
 The other problem is what might be happening during the main thread:
 
-![](https://lh6.googleusercontent.com/1-G-1upty8iCktudX5XNY7Gs4Pb21sX4gHajytGOPrraKbSH9aEXgGaWMyQ-ZW1Soh2eNMiGYIL-BytQ25dE6LowLCkN1glPmtELnea4mPQNecY-f9uf3yZhE2md53yo0MAwv-zD)
+![](1-g-1upty8icktudx5xny7gs4pb21sx4ghajytgoprrakbsh9aexggawmyq-zw1soh2enmigyil-bytq25de6lowlckn1glpmtelnea4mpqnecy-f9uf3yzhe2md53yo0mawv-zd.png)
 
 This is the worst-case scenario for a STAT-based VRAM access. Here, the main thread reads rSTAT on the very last cycle of Hblank. After the brief processing of the value it read, the main loop may use the 16 guaranteed cycles of OAM scan to access VRAM. This just barely works out. But what happens if an interrupt is requested on that next cycle?
 
-![](https://lh3.googleusercontent.com/xbV7TN6oyGS-Syj5IeMT77o2Q6bNc9NocIIFAn9RO5k0wT0604BPFEn5ZWtt2Dr9qPs01XNajMVuODKpACCSRFtWziMzqPvm30-a0PwH3Bns712JrUlSziZ52Q5W-wYIlNYxezon)
+![](xbv7tn6oygs-syj5iemt77o2q6bnc9nociifan9ro5k0wt0604bpfen5zwtt2dr9qps01xnajmvuodkpaccsrftwzimzqpvm30-a0pwh3bns712jrulsziz52q5w-wyilnyxezon.png)
 
 Oh no! The main thread is trying to access VRAM right in the middle of the drawing phase! This could lead to all sorts of glitches.
 
   
 
-The solution is not too complicated, at least on paper. We just need to do all our register writes, and exit, during Hblank. This seems easy enough, since if you’ve made it this far, you already know how to utilize the blanking periods to access VRAM. So what happens if you use that method?![](https://lh6.googleusercontent.com/rG9jy2P2mETJb1coMhKJUIhAd_ksWdT6Cxv5bPL--JOD-_IZxrOVpv1m4OpgPG83t8aDPzhx9q90IBrc91C5OL6fh8bMGLrIYE89fs4bunUneeecSGrH1HHXl8IQx7CEUNxLVnlG)
+The solution is not too complicated, at least on paper. We just need to do all our register writes, and exit, during Hblank. This seems easy enough, since if you’ve made it this far, you already know how to utilize the blanking periods to access VRAM. So what happens if you use that method?![](rg9jy2p2metjb1comhkjuihad_kswdt6cxv5bpl-jod-_izxrovpv1m4opgpg83t8adpzhx9q90ibrc91c5ol6fh8bmglriye89fs4bununeeecsgrh1hhxl8iqx7ceunxlvnlg.png)
 
 Here, the long blue strip represents the time spent within the interrupt routine. Remember that many STAT routines will be much more complicated than the simple example above.
 
@@ -127,11 +127,11 @@ jr z, .disableSprites
 
 See how this method never interferes with VRAM accesses in the main thread, even with the worst possible timing and the shortest of Hblanks:
 
-![](https://lh6.googleusercontent.com/ZbIB0RKJcjk3AJppM4nnfCVyni0-dkTmAkghshBwkhRQ_8lTfweFcSFMX0Vn5oGKBOcE3zhQCWPHc7b-Raysh2eym24ZYCtjpm2BDtpoAiH--4g9boPUGvG65bfksktgpWiqRYRo)
+![](zbib0rkjcjk3ajppm4nnfcvyni0-dktmakghshbwkhrq_8ltfwefcsfmx0vn5ogkboce3zhqcwphc7b-raysh2eym24zyctjpm2bdtpoaih-4g9bopugvg65bfksktgpwiqryro.png)
 
 Phew! This just barely works. There are only two cycles to spare! If there were multiple registers that needed updating, you might run into trouble. Normally, These really short Hblanks are the worst-case scenario that you always fear. However, in practice, Hblanks are normally much longer, often even longer than the drawing phase. Using this method, that can actually have unfortunate consequences:
 
-![](https://lh6.googleusercontent.com/cacgF7M3c0alat0BZ7nDQ08JvkLrBGf1F2fimsnMHguFNu48miqv1-bKsZwva-90yN3F9NKEGxRC0_MaDNpA6q1zWg4oS-NCDB_NtE0-TgXowu-zM6LIZsKYoUUX_8pCVzdcFH7x)
+![](cacgf7m3c0alat0bz7ndq08jvklrbgf1f2fimsnmhgufnu48miqv1-bkszwva-90yn3f9nkegxrc0_madnpa6q1zwg4os-ncdb_nte0-tgxowu-zm6lizskyouux_8pcvzdcfh7x.png)
 
 This time, when all the processing was done, there was still plenty of time left in the scanline to safely exit. However, since Hblank was so long, the routine missed the check for the drawing window and wasted an entire scanline waiting for that Drawing -> Hblank transition before it exited. Not only does this waste precious CPU time, but it also limits how often raster FX can be used throughout the frame. This method still works fine though, and can be an easy approach if you use Raster FX sparingly.
 
@@ -156,11 +156,11 @@ The problem here is that the code following this pattern may be run after a vari
 
 So now that you’re ready to count the cycles of your handler, how long do you need to make the routine? Let’s look at some more diagrams to figure this out!
 
-![](https://lh3.googleusercontent.com/skXVFsePtwE_zxlH0tGhlPP-vQfxRwhFi-Pti8uTCNLzHBDbdS-Qz3i-tekLf8S_bMwqYm82hVSnS07mGqSsX4gPIPiUf81LIv2Ov5iZ8dPetI6Hzc50aF8AA6SNMvn_8Lob96Q9)
+![](skxvfseptwe_zxlh0tghlpp-vqfxrwhfi-pti8utcnlzhbdbds-qz3i-teklf8s_bmwqym82hvsns07mgqssx4gpipiuf81liv2ov5iz8dpeti6hzc50af8aa6snmvn_8lob96q9.png)
 
 Wow! That’s a lot of cycles! Here, the routine takes exactly one scanline to complete, so the main thread does its writes at the same moment on the next scanline, with no idea what happened! If you count up all the cyan cycles, you’ll see that there are 105 of them, and 109 if you count the ‘reti’. This extra time makes it possible to write to two or three registers safely, rather than just one. If you don’t need all that time, you can make it shorter as well:
 
-![](https://lh4.googleusercontent.com/NTu1m8u5BrcjbUsNFK1mfhIZb8vgukv7H1J4ZZxWKjRO-1YcuiK5sZP5ZBAzhHZRh-Wt-Mog9Op1tc2_-LNOz-RYnFr-1E2PlO3g-nNKiC-2r8vXF_zfNFdCcTA5jFdwmx7GBhcr)
+![](ntu1m8u5brcjbusnfk1mfhizb8vgukv7h1j4zzxwkjro-1ycuik5szp5zbazhhzrh-wt-mog9op1tc2_-lnoz-rynfr-1e2plo3g-nnkic-2r8vxf_zfnfdccta5jfdwmx7gbhcr.png)
 
 This time, I put the ‘and’ and ‘jr’ before the interrupt, so that when it resumes, it’s all ready to start writing to VRAM. This interrupt routine is 87 cycles long, including the ‘reti’. This won’t often prove especially useful though, because you never take any time during Hblank to actually do any register writes. However, you could use this if your routine has a case where it realizes that nothing actually needs to be written, and you can exit earlier.
 
@@ -169,7 +169,7 @@ From those two diagrams, you’ll see that the 22 cycles of worst-case Hblank is
 What if I told you that you could actually have your handler take only 86 cycles? Well, you can!
 
 
-![](https://lh6.googleusercontent.com/chkMX4zNIBVPXF0A7aROvnzllBCcQMMZS7ZYEo1MxZC3oD3O2d0whf4ggvz8VcD5q6v5_tafIRkkSZH008MwFFFxMxtEKYiiUuppOouMtoTpNOc8q7LC6dYSI5lRv39Ke0epnpMf)
+![](chkmx4znibvpxf0a7arovnzllbccqmmzs7zyeo1mxzc3od3o2d0whf4ggvz8vcd5q6v5_tafirkkszh008mwfffxmxtekyiiuuppooumtotpnoc8q7lc6dysi5lrv39ke0epnpmf.png)
 
 This seems bad, since the first cycle of the red bar, where the main thread may try to access VRAM, is potentially during the Drawing phase! This is also fine though. All instructions that access memory, whether through an immediate address or using a register pair as a pointer, take multiple cycles to complete. That’s because the first cycle of every instruction is used to fetch the operation code itself. The memory access that the instruction performs is always in the 2nd, 3rd or 4th cycle of the instruction. In this situation, the 2nd cycle of the VRAM-accessible time is in Hblank, so this won’t actually cause any problems.
 
@@ -179,7 +179,7 @@ This seems bad, since the first cycle of the red bar, where the main thread may 
 
 The interrupt latency I showed earlier doesn’t actually tell the full story. Before it even starts to service the interrupt, the system waits for the current instruction to finish. This is how that might look with the longest allowable routine:
 
-![](https://lh5.googleusercontent.com/gV5XYDkiLbMnzZzk-G2V0LeGNpcoehb8xtV9s95QBJdXZVoCLculls2FtYj1lE1w0a5nQJlqn_bI8YxwwRfmyTZmRI8jiDuaYzQjDIPTn0clOAtqCdRAl-c-dkpeDes1HNJt2vxC)
+![](gv5xydkilbmnzzzk-g2v0legnpcoehb8xtv9s95qbjdxzvoclculls2ftyj1le1w0a5nqjlqn_bi8yxwwrfmytzmri8jiduayzqjdiptn0cloatqcdral-c-dkpedes1hnjt2vxc.png)
 
 Here, the first green block shows the system waiting 5 cycles for a ‘call’ instruction to finish. ‘call’ is the longest instruction at 6 cycles, so if the interrupt is requested just after it begins, the system will wait 5 cycles for it to complete. This seems bad, since the routine exited after the end of Hblank. However, this is actually fine! Those waiting cycles were not wasted; they were still 5 cycles of work that the main thread got done. So in the end, the main thread still gets its 20 cycles of VRAM-accessible time.
 
