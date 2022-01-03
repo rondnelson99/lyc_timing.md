@@ -299,7 +299,6 @@ If we make a similar list of pros and cons for this method, this is what it migh
 **Cons**
 -   requires all code to be constant-time 
 -   requires tedious cycle-counting
--   always takes close to an entire scanline, even if Hblank starts much sooner
   
 
 
